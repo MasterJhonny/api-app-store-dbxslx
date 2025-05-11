@@ -33,9 +33,9 @@ def products():
         try:
             sheet = client.open("db-tienda").sheet1
             # Abrir el documento
-            list_details = sheet.col_values(2)
-            list_prices = sheet.col_values(3)
-            list_image_urls = sheet.col_values(4)
+            list_details = sheet.col_values(2)[1:]
+            list_prices = sheet.col_values(3)[1:]
+            list_image_urls = sheet.col_values(4)[1:]
 
             # Crear una lista de diccionarios
             list_products = [
