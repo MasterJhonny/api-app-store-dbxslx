@@ -3,9 +3,20 @@ from flask_cors import CORS
 from dotenv import load_dotenv
 from os import environ
 import gspread
+import uuid
+import cloudinary
+import cloudinary.uploader
 from oauth2client.service_account import ServiceAccountCredentials
 
 app = Flask(__name__)
+
+# Configuration cloudinary      
+cloudinary.config( 
+    cloud_name = "dnumlnadg", 
+    api_key = environ.get('CLOUDINARY_API_KEY'), 
+    api_secret = environ.get('CLOUDINARY_API_SECRET'), # Click 'View API Keys' above to copy your API secret
+    secure=True
+)
 
 # Habilitar CORS para toda la aplicación
 CORS(app)
@@ -54,7 +65,36 @@ def products():
         except Exception as e:
             return jsonify({"error": f"Ocurrió un error: {e}"}), 404        
     elif request.method == 'POST':
-        return jsonify({"message":"Product created!"}), 201
+        data = request.form
+        if data is None:
+            return jsonify({"error": "No data provided"}), 400
+        else:
+            print("🚀 ~ data:", data)
+            # generar un UUID
+            myuuid = str(uuid.uuid4())
+            print('Your UUID is: ' + myuuid)
+            # Verificar si se envió un archivo de imagen
+            if 'image_url' not in request.files:
+                return jsonify({"error": "No image file provided"}), 400
+            img_file = request.files.get('image_url')
+            print("🚀 ~ img_file:", img_file)
+
+            # Subir imagen a Cloudinary
+            upload_result = cloudinary.uploader.upload(img_file, folder="imgs-products-store")
+            img_path = upload_result["secure_url"]
+            print("imagen path:", img_path)
+
+            sheet = client.open("db-tienda").sheet1
+            sheet.append_row([
+                myuuid,
+                data.get('detail'),
+                data.get('price'),
+                img_path,
+                data.get('supplier'),
+                data.get('category'),
+                data.get('quantity')
+            ])
+            return jsonify(data.to_dict()), 201
 
 # Ruta para actualizar un producto
 @app.route('/products/<int:id>', methods=['PUT'])
