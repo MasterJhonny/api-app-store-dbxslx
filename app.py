@@ -44,6 +44,7 @@ def products():
         try:
             sheet = client.open("db-tienda").sheet1
             # Abrir el documento
+            list_id = sheet.col_values(1)[1:]
             list_details = sheet.col_values(2)[1:]
             list_prices = sheet.col_values(3)[1:]
             list_image_urls = sheet.col_values(4)[1:]
@@ -51,11 +52,12 @@ def products():
             # Crear una lista de diccionarios
             list_products = [
                 {
+                    "id": id,
                     "detail": detail,
                     "price": price,
                     "image_url": image_url
                 }
-                for detail, price, image_url in zip(list_details, list_prices, list_image_urls)
+                for id, detail, price, image_url in zip(list_id, list_details, list_prices, list_image_urls)
             ]
 
             # retornar el resultado
